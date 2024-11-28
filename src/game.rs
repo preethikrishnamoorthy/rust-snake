@@ -12,14 +12,17 @@ const GAMEOVER_COLOR: Color = [0.91, 0.30, 0.24, 0.5];
 const MOVING_PERIOD: f64 = 0.2; // in second
 const RESTART_TIME: f64 = 1.0; // in second
 
+pub struct Food {
+    food_x: i32,
+    food_y: i32,
+    instr: String,
+}
+
 pub struct Game {
     snake: Snake,
 
     // Food
-    food_exist: bool,
-    food_x: i32,
-    food_y: i32,
-
+    food_list: Vec<Food>,
     // Game Space
     width: i32,
     height: i32,
@@ -36,9 +39,11 @@ impl Game {
         Game {
             snake: Snake::new(2, 2),
             waiting_time: 0.0,
-            food_exist: true,
-            food_x: 5,
-            food_y: 3,
+            food_list: vec![Food {
+                food_x: 5,
+                food_y: 5,
+                instr: "testing".to_string(),
+            }],
             width: width,
             height: height,
             is_game_over: false,
@@ -71,8 +76,12 @@ impl Game {
         self.snake.draw(con, g);
 
         // Draw the food
-        if self.food_exist {
-            draw_block(FOOD_COLOR, self.food_x, self.food_y, con, g);
+        // if self.food_exist {
+        //     draw_block(FOOD_COLOR, self.food_x, self.food_y, con, g);
+        // }
+
+        for food in &self.food_list {
+            draw_block(FOOD_COLOR, food.food_x, food.food_y, con, g);
         }
 
         // Draw the border
@@ -99,9 +108,9 @@ impl Game {
         }
 
         // Check if the food still exists
-        if !self.food_exist {
-            self.add_food();
-        }
+        // if !self.food_exist {
+        //     self.add_food();
+        // }
 
         // Move the snake
         if self.waiting_time > MOVING_PERIOD {
@@ -111,9 +120,12 @@ impl Game {
 
     fn check_eating(&mut self) {
         let (head_x, head_y): (i32, i32) = self.snake.head_position();
-        if self.food_exist && self.food_x == head_x && self.food_y == head_y {
-            self.food_exist = false;
-            self.snake.restore_last_removed();
+        for (food_idx, food) in self.food_list.iter().enumerate() {
+            if food.food_x == head_x && food.food_y == head_y {
+                self.food_list.remove(food_idx);
+                self.snake.restore_last_removed();
+                return;
+            }
         }
     }
 
@@ -141,9 +153,15 @@ impl Game {
         }
 
         // Add the new food
-        self.food_x = new_x;
-        self.food_y = new_y;
-        self.food_exist = true;
+        // self.food_x = new_x;
+        // self.food_y = new_y;
+        // self.food_exist = true;
+        let new_food = Food {
+            food_x: new_x,
+            food_y: new_y,
+            instr: "testing".to_string(),
+        };
+        self.food_list.push(new_food);
     }
 
     fn update_snake(&mut self, dir: Option<Direction>) {
@@ -159,9 +177,16 @@ impl Game {
     fn restart(&mut self) {
         self.snake = Snake::new(2, 2);
         self.waiting_time = 0.0;
-        self.food_exist = true;
-        self.food_x = 5;
-        self.food_y = 3;
+        // self.food_exist = true;
+        // self.food_x = 5;
+        // self.food_y = 3;
+        self.food_list = vec! [
+            Food {
+                food_x:5,
+                food_y:5,
+                instr:"testing".to_string(),
+            }
+        ];
         self.is_game_over = false;
     }
 }
